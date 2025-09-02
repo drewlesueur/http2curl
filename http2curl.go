@@ -3,6 +3,7 @@ package http2curl
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"sort"
@@ -52,16 +53,21 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 
 	command.append("-X", bashEscape(req.Method))
 
-	if req.Body != nil {
-		var buff bytes.Buffer
-		_, err := buff.ReadFrom(req.Body)
+	// Preserve and restore body robustly, handle http.NoBody, and keep headers consistent
+	if req.Body != nil && req.Body != http.NoBody {
+		bodyBytes, err := io.ReadAll(req.Body)
 		if err != nil {
-			return nil, fmt.Errorf("getCurlCommand: buffer read from body error: %w", err)
+			return nil, fmt.Errorf("getCurlCommand: read body error: %w", err)
 		}
-		// reset body for potential re-reads
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(buff.Bytes()))
-		if len(buff.String()) > 0 {
-			bodyEscaped := bashEscape(buff.String())
+		// Reset body for potential re-reads (both for curl generation and subsequent HTTP client)
+		req.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
+		req.ContentLength = int64(len(bodyBytes))
+		// Remove Transfer-Encoding chunked if present since we set ContentLength
+		if req.Header != nil {
+			req.Header.Del("Transfer-Encoding")
+		}
+		if len(bodyBytes) > 0 {
+			bodyEscaped := bashEscape(string(bodyBytes))
 			command.append("-d", bodyEscaped)
 		}
 	}
