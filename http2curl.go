@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"sort"
 	"strings"
@@ -60,7 +59,7 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 			return nil, fmt.Errorf("getCurlCommand: read body error: %w", err)
 		}
 		// Reset body for potential re-reads (both for curl generation and subsequent HTTP client)
-		req.Body = ioutil.NopCloser(bytes.NewReader(bodyBytes))
+		req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 		req.ContentLength = int64(len(bodyBytes))
 		// Remove Transfer-Encoding chunked if present since we set ContentLength
 		if req.Header != nil {
