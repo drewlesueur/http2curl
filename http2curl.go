@@ -46,10 +46,6 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 		requestURL = schema + "://" + req.Host + req.URL.Path
 	}
 
-	if schema == "https" {
-		command.append("-k")
-	}
-
 	command.append("-X", bashEscape(req.Method))
 
 	// Preserve and restore body robustly, handle http.NoBody, and keep headers consistent
