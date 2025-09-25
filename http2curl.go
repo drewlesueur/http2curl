@@ -43,13 +43,7 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 		if req.TLS != nil {
 			schema = "https"
 		}
-		// Build full URL string, preserving path and query via URL.String()
-		// When scheme is empty, use req.Host with the determined schema.
-		// req.URL.String() without a Host can drop the authority; construct explicitly.
-		u := *req.URL
-		u.Scheme = schema
-		u.Host = req.Host
-		requestURL = u.String()
+		requestURL = schema + "://" + req.Host + req.URL.String()
 	}
 
 	command.append("-X", bashEscape(req.Method))

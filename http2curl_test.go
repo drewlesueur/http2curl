@@ -158,57 +158,57 @@ func BenchmarkGetCurlCommand(b *testing.B) {
 }
 
 func TestGetCurlCommand_serverSide(t *testing.T) {
-    svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        c, err := GetCurlCommand(r)
-        if err != nil {
-            t.Error(err)
-        }
-        fmt.Fprint(w, c.String())
-    }))
-    defer svr.Close()
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := GetCurlCommand(r)
+		if err != nil {
+			t.Error(err)
+		}
+		fmt.Fprint(w, c.String())
+	}))
+	defer svr.Close()
 
-    resp, err := http.Get(svr.URL)
-    if err != nil {
-        t.Error(err)
-    }
-    defer resp.Body.Close()
-    data, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        t.Error(err)
-    }
+	resp, err := http.Get(svr.URL)
+	if err != nil {
+		t.Error(err)
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
 
-    exp := fmt.Sprintf("curl -X 'GET' -H 'Accept-Encoding: gzip' -H 'User-Agent: Go-http-client/1.1' '%s/' --compressed", svr.URL)
-    if out := string(data); out != exp {
-        t.Errorf("act: %s, exp: %s", out, exp)
-    }
+	exp := fmt.Sprintf("curl -X 'GET' -H 'Accept-Encoding: gzip' -H 'User-Agent: Go-http-client/1.1' '%s/' --compressed", svr.URL)
+	if out := string(data); out != exp {
+		t.Errorf("act: %s, exp: %s", out, exp)
+	}
 }
 
 // Ensure URL.String() is used to preserve query parameters when scheme is empty (server-side requests)
 func TestGetCurlCommand_serverSideWithQuery(t *testing.T) {
-    svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        c, err := GetCurlCommand(r)
-        if err != nil {
-            t.Error(err)
-            return
-        }
-        fmt.Fprint(w, c.String())
-    }))
-    defer svr.Close()
+	svr := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := GetCurlCommand(r)
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		fmt.Fprint(w, c.String())
+	}))
+	defer svr.Close()
 
-    // Append query to the server URL
-    urlWithQuery := svr.URL + "/path?foo=bar&baz=qux"
-    resp, err := http.Get(urlWithQuery)
-    if err != nil {
-        t.Fatal(err)
-    }
-    defer resp.Body.Close()
-    data, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        t.Fatal(err)
-    }
+	// Append query to the server URL
+	urlWithQuery := svr.URL + "/path?foo=bar&baz=qux"
+	resp, err := http.Get(urlWithQuery)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-    exp := fmt.Sprintf("curl -X 'GET' -H 'Accept-Encoding: gzip' -H 'User-Agent: Go-http-client/1.1' '%s' --compressed", urlWithQuery)
-    if out := string(data); out != exp {
-        t.Errorf("act: %s, exp: %s", out, exp)
-    }
+	exp := fmt.Sprintf("curl -X 'GET' -H 'Accept-Encoding: gzip' -H 'User-Agent: Go-http-client/1.1' '%s' --compressed", urlWithQuery)
+	if out := string(data); out != exp {
+		t.Errorf("act: %s, exp: %s", out, exp)
+	}
 }
