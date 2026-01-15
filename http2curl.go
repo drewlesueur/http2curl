@@ -63,7 +63,7 @@ func GetCurlCommand(req *http.Request) (*CurlCommand, error) {
 		}
 		if len(bodyBytes) > 0 {
 			bodyEscaped := bashEscape(string(bodyBytes))
-			command.append("-d", bodyEscaped)
+			command.append("--data-raw", bodyEscaped)
 		}
 	}
 
